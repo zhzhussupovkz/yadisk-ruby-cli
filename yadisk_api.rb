@@ -198,7 +198,7 @@ class YadiskApi
     if res.code == "201"
       puts "#{from} successfully moved to #{to}"
     else
-      raise "#{from} is not moved"
+      puts "#{from} is not moved"
     end
   end
 
@@ -224,7 +224,7 @@ class YadiskApi
     if res.code == "200"
       puts "Directory #{dir} successfully deleted from the server"
     else
-      raise "Directory #{dir} not deleted"
+      puts "Directory #{dir} not deleted"
     end
   end
 
@@ -258,7 +258,7 @@ class YadiskApi
       puts "Used disk space: #{used} bytes"
       puts "All disk space: #{available} bytes"
     else
-      raise "Invalid returned data from server"
+      puts "Invalid returned data from server"
     end
   end
 
@@ -287,7 +287,72 @@ class YadiskApi
         puts CGI::unescape href
       end
     else
-      raise "Invalid returned data from server"
+      puts "Invalid returned data from server"
+    end
+  end
+
+  #share file or directory
+  def share options = {}
+    if options[:dir].nil? || !options.key?(:dir)
+      puts "Please, set file or directory name for share"
+      exit
+    else
+      dir = options[:dir]
+    end
+    url = @api_url
+    uri = URI.parse url
+    http = Net::HTTP.new uri.host, uri.port
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    req = Net::HTTP::Proppatch.new dir
+    req.basic_auth @login, @pass
+    send = '
+    <propertyupdate xmlns="DAV:"><set><prop>
+      <public_url xmlns="urn:yandex:disk:meta">true</public_url>
+    </prop></set></propertyupdate>'
+    req['Host'] = "webdav.yandex.ru"
+    req['User-Agent'] = "yadisk-ruby-cli"
+    req['Content-Length'] = send.size
+    req.body = send
+    res = http.request req
+    if res.code == "207"
+      data = res.body
+      xml = REXML::Document.new data
+      doc = xml.elements['d:multistatus/d:response/d:propstat/d:prop/public_url']
+      puts "Share link for #{dir}: " + doc[0].to_s
+    else
+      puts "Invalid returned data from server"
+    end
+  end
+
+  #set private file or directory
+  def set_private options = {}
+    if options[:dir].nil? || !options.key?(:dir)
+      puts "Please, set file or directory name for private"
+      exit
+    else
+      dir = options[:dir]
+    end
+    url = @api_url
+    uri = URI.parse url
+    http = Net::HTTP.new uri.host, uri.port
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    req = Net::HTTP::Proppatch.new dir
+    req.basic_auth @login, @pass
+    send = '
+    <propertyupdate xmlns="DAV:"><remove><prop>
+      <public_url xmlns="urn:yandex:disk:meta"/>
+    </prop></remove></propertyupdate>'
+    req['Host'] = "webdav.yandex.ru"
+    req['User-Agent'] = "yadisk-ruby-cli"
+    req['Content-Length'] = send.size
+    req.body = send
+    res = http.request req
+    if res.code == "207"
+      puts "#{dir} is successfully private"
+    else
+      puts "Invalid returned data from server"
     end
   end
 
