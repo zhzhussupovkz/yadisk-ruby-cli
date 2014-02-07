@@ -47,8 +47,8 @@ class YadiskApi
     http = Net::HTTP.new uri.host, uri.port
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    dir = options[:dir]
-    file = options[:file]
+    dir = options[:dir] || '/'
+    file = options[:file] || 'ruby.png'
     req = Net::HTTP::Put.new (dir + file)
     req.basic_auth @login, @pass
     etag = Digest::MD5.hexdigest File.read(file)
