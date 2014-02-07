@@ -30,6 +30,7 @@ require 'net/https'
 require 'openssl'
 require 'base64'
 require 'digest'
+require 'cgi'
 require 'rexml/document'
 
 #YadiskApi - sipmlest class for working with yandex.disk
@@ -209,6 +210,34 @@ class YadiskApi
       available = stats.to_s.gsub('<d:quota-available-bytes>', '').gsub('</d:quota-available-bytes>', '')
       puts "Used disk space: #{used} bytes"
       puts "All disk space: #{available} bytes"
+    else
+      raise "Invalid returned data from server"
+    end
+  end
+
+  #get list of files and directories
+  def get_list
+    url = @api_url
+    uri = URI.parse url
+    http = Net::HTTP.new uri.host, uri.port
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    req = Net::HTTP::Propfind.new '/'
+    req.basic_auth @login, @pass
+    req['Host'] = "webdav.yandex.ru"
+    req['User-Agent'] = "yadisk-ruby-cli"
+    req['Accept'] = "*/*"
+    req['Depth'] = "1"
+    res = http.request req
+    if res.code == "207"
+      data = res.body
+      xml = REXML::Document.new data
+      doc = xml.elements['d:multistatus']
+      puts "List of files and directories:"
+      doc.each do |e|
+        href = URI.decode e[0].to_s.gsub('<d:href>', '').gsub('</d:href>', '')
+        puts CGI::unescape href
+      end
     else
       raise "Invalid returned data from server"
     end
