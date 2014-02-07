@@ -216,13 +216,14 @@ class YadiskApi
   end
 
   #get list of files and directories
-  def get_list
+  def get_list dir = '/', options = { :amount => 3, :offset => 3 }
+    options = URI.escape(options.collect{ |k,v| "#{k}=#{v}"}.join('&'))
     url = @api_url
     uri = URI.parse url
     http = Net::HTTP.new uri.host, uri.port
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    req = Net::HTTP::Propfind.new '/'
+    req = Net::HTTP::Propfind.new dir + '/?' + options
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
     req['User-Agent'] = "yadisk-ruby-cli"
@@ -233,7 +234,7 @@ class YadiskApi
       data = res.body
       xml = REXML::Document.new data
       doc = xml.elements['d:multistatus']
-      puts "List of files and directories:"
+      puts "List of files and directories in #{dir}:"
       doc.each do |e|
         href = URI.decode e[0].to_s.gsub('<d:href>', '').gsub('</d:href>', '')
         puts CGI::unescape href
