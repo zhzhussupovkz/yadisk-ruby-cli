@@ -356,4 +356,34 @@ class YadiskApi
     end
   end
 
+  #get image preview from server - only for images
+  def image_preview options = {}
+    if options[:file].nil? || !options.key?(:file)
+      puts "Please, set filename for preview"
+      exit
+    else
+      file = options[:file]
+    end
+    size = options[:size] || 'XS'
+    url = @api_url
+    uri = URI.parse url
+    http = Net::HTTP.new uri.host, uri.port
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    req = Net::HTTP::Get.new file + "/?preview&size=#{size}"
+    req.basic_auth @login, @pass
+    req['Host'] = "webdav.yandex.ru"
+    req['User-Agent'] = "yadisk-ruby-cli"
+    res = http.request req
+    if res.code == "200"
+      data = res.body
+      basename = File.basename file
+      ext = File.extname(basename)
+      output = basename.gsub(ext, "-preview-#{size}#{ext}")
+      File.new("#{output}", 'wb').write(data)
+    else
+      puts "Invalid returned data from server"
+    end
+  end
+
 end
