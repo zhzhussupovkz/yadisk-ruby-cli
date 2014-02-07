@@ -42,14 +42,19 @@ class YadiskApi
   end
 
   #upload file to the server
-  def upload_file options = { :dir => '/', :file => nil }
+  def upload_file options = {}
     url = @api_url
     uri = URI.parse url
     http = Net::HTTP.new uri.host, uri.port
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     dir = options[:dir] || '/'
-    file = options[:file] || 'ruby.png'
+    if options[:file].nil? || !options.key?(:file)
+      puts "Please, set filename"
+      exit
+    else
+      file = options[:file]
+    end
     req = Net::HTTP::Put.new (dir + file)
     req.basic_auth @login, @pass
     etag = Digest::MD5.hexdigest File.read(file)
@@ -72,14 +77,24 @@ class YadiskApi
   end
 
   #download file from server
-  def download_file options = { :file => nil, :output => nil }
+  def download_file options = {}
     url = @api_url
     uri = URI.parse url
     http = Net::HTTP.new uri.host, uri.port
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    file = options[:file]
-    output = options[:output]
+    if options[:file].nil? || !options.key?(:file)
+      puts "Please, set file or directory from server"
+      exit
+    else
+      file = options[:file]
+    end
+    if options[:output].nil? || !options.key?(:output)
+      puts "Please, set output file or directory name"
+      exit
+    else
+      output = options[:output]
+    end
     req = Net::HTTP::Get.new file
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
@@ -91,12 +106,18 @@ class YadiskApi
       File.new("#{output}", 'wb').write(data)
       puts "File #{file} successfully downloaded to #{output}"
     else
-      raise "File #{file} is not downloaded" 
+      puts "File #{file} is not downloaded" 
     end
   end
 
   #create directory in the server
-  def mkdir dir = nil
+  def mkdir options = {}
+    if options[:dir].nil? || !options.key?(:dir)
+      puts "Please, set new file or directory name"
+      exit
+    else
+      dir = options[:dir]
+    end
     url = @api_url
     uri = URI.parse url
     http = Net::HTTP.new uri.host, uri.port
@@ -111,19 +132,29 @@ class YadiskApi
     if res.code == "201"
       puts "Directory #{dir} successfully created in the server"
     else
-      raise "Directory #{dir} creating is crashed"
+      puts "Directory #{dir} creating is crashed"
     end
   end
 
   #copy directories and files
-  def copy options = { :from => nil, :to => nil }
+  def copy options = {}
     url = @api_url
     uri = URI.parse url
     http = Net::HTTP.new uri.host, uri.port
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    from = options[:from]
-    to = options[:to]
+    if options[:from].nil? || !options.key?(:from)
+      puts "Please, set file or path name for copy"
+      exit
+    else
+      from = options[:from]
+    end
+    if options[:to].nil? || !options.key?(:to)
+      puts "Please, set destination file or path name"
+      exit
+    else
+      to = options[:to]
+    end
     req = Net::HTTP::Copy.new from
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
@@ -139,14 +170,24 @@ class YadiskApi
   end
 
   #move directories and files
-  def move options = { :from => nil, :to => nil }
+  def move options = {}
     url = @api_url
     uri = URI.parse url
     http = Net::HTTP.new uri.host, uri.port
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    from = options[:from]
-    to = options[:to]
+    if options[:from].nil? || !options.key?(:from)
+      puts "Please, set file or path name for move"
+      exit
+    else
+      from = options[:from]
+    end
+    if options[:to].nil? || !options.key?(:to)
+      puts "Please, set destination file or path name"
+      exit
+    else
+      to = options[:to]
+    end
     req = Net::HTTP::Move.new from
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
@@ -162,7 +203,13 @@ class YadiskApi
   end
 
   #remove directory or files from the server
-  def rm dir = nil
+  def rm options = {}
+    if options[:dir].nil? || !options.key?(:dir)
+      puts "Please, set file or directory name for delete"
+      exit
+    else
+      dir = options[:dir]
+    end
     url = @api_url
     uri = URI.parse url
     http = Net::HTTP.new uri.host, uri.port
