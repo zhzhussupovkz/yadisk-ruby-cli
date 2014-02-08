@@ -38,16 +38,16 @@ class YadiskApi
 
   def initialize login, pass
     @login, @pass = login, pass
-    @api_url = 'https://webdav.yandex.ru'
+    uri = URI.parse 'https://webdav.yandex.ru'
+    @http = Net::HTTP.new uri.host, uri.port
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   end
+
+  attr_reader :http
 
   #upload file to the server
   def upload_file options = {}
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     dir = options[:dir] || '/'
     if options[:file].nil? || !options.key?(:file)
       puts "Please, set filename"
@@ -78,11 +78,6 @@ class YadiskApi
 
   #download file from server
   def download_file options = {}
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     if options[:file].nil? || !options.key?(:file)
       puts "Please, set filename from server"
       exit
@@ -90,7 +85,7 @@ class YadiskApi
       file = options[:file]
     end
     if options[:output].nil? || !options.key?(:output)
-      puts "Please, set output filename"
+      puts "Please, set local file name"
       exit
     else
       output = options[:output]
@@ -118,11 +113,6 @@ class YadiskApi
     else
       dir = options[:dir]
     end
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     req = Net::HTTP::Mkcol.new dir
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
@@ -138,11 +128,6 @@ class YadiskApi
 
   #copy directories and files
   def copy options = {}
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     if options[:from].nil? || !options.key?(:from)
       puts "Please, set file or path name for copy"
       exit
@@ -171,11 +156,6 @@ class YadiskApi
 
   #move directories and files
   def move options = {}
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     if options[:from].nil? || !options.key?(:from)
       puts "Please, set file or path name for move"
       exit
@@ -210,11 +190,6 @@ class YadiskApi
     else
       dir = options[:dir]
     end
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     req = Net::HTTP::Delete.new dir
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
@@ -230,11 +205,6 @@ class YadiskApi
 
   #get used and all disk space
   def get_space
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     quota = '<D:propfind xmlns:D="DAV:">
       <D:prop>
       <D:quota-available-bytes/>
@@ -265,11 +235,6 @@ class YadiskApi
   #get list of files and directories
   def get_list dir = '/', options = { :amount => 3, :offset => 3 }
     options = URI.escape(options.collect{ |k,v| "#{k}=#{v}"}.join('&'))
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     req = Net::HTTP::Propfind.new dir + '/?' + options
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
@@ -299,11 +264,6 @@ class YadiskApi
     else
       dir = options[:dir]
     end
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     req = Net::HTTP::Proppatch.new dir
     req.basic_auth @login, @pass
     send = '
@@ -333,11 +293,6 @@ class YadiskApi
     else
       dir = options[:dir]
     end
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     req = Net::HTTP::Proppatch.new dir
     req.basic_auth @login, @pass
     send = '
@@ -365,11 +320,6 @@ class YadiskApi
       file = options[:file]
     end
     size = options[:size] || 'XS'
-    url = @api_url
-    uri = URI.parse url
-    http = Net::HTTP.new uri.host, uri.port
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     req = Net::HTTP::Get.new file + "/?preview&size=#{size}"
     req.basic_auth @login, @pass
     req['Host'] = "webdav.yandex.ru"
