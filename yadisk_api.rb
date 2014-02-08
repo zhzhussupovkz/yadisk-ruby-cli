@@ -84,13 +84,13 @@ class YadiskApi
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     if options[:file].nil? || !options.key?(:file)
-      puts "Please, set file or directory from server"
+      puts "Please, set filename from server"
       exit
     else
       file = options[:file]
     end
     if options[:output].nil? || !options.key?(:output)
-      puts "Please, set output file or directory name"
+      puts "Please, set output filename"
       exit
     else
       output = options[:output]
