@@ -231,7 +231,7 @@ class YadiskCli
     when 'space'
       yadisk.get_space
     when 'list'
-      dir = cli[:dir]
+      dir = cli[:dir] || '/'
       cli.delete(:dir)
       yadisk.get_list dir, cli
     when 'share'
