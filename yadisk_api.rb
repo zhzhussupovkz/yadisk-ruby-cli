@@ -331,6 +331,7 @@ class YadiskApi
       ext = File.extname(basename)
       output = basename.gsub(ext, "-preview-#{size}#{ext}")
       File.new("#{output}", 'wb').write(data)
+      puts "#{file} preview is successfully downloaded"
     else
       puts "Invalid returned data from server"
     end
