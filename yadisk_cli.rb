@@ -47,7 +47,6 @@ class YadiskCli
       share: Share file or directory from the Yandex.Disk\n
       private: Set private file or directory from the Yandex.Disk\n
       preview: Get image preview from the Yandex.Disk\n
-      property: Get property of file or directory from the Yandex.Disk\n
       See 'run.rb COMMAND --help' for more information on a specific command.\n"
     end
 
@@ -219,20 +218,6 @@ class YadiskCli
         opts.on('-s', '--size SIZE', "Image size from Yandex.Disk") do |o|
           cli[:size] = o
         end
-      end,
-
-      #get property of file or dir
-      'property' =>  OptionParser.new do |opts|
-        opts.banner = "Get property of file or directory from the Yandex.Disk\n"
-
-        opts.on('-h', '--help', "help page") do
-          puts opts
-          exit
-        end
-
-        opts.on('-d', '--dir DIRNAME', "Dirname or filename from Yandex.Disk.") do |o|
-          cli[:dir] = o
-        end
       end
     }
     global.order!
@@ -274,8 +259,6 @@ class YadiskCli
       yadisk.set_private cli
     when 'preview'
       yadisk.image_preview options = cli
-    when 'property'
-      yadisk.get_property options = cli
     end
   end
 

@@ -250,6 +250,27 @@ class YadiskApi
       doc.each do |e|
         href = URI.decode e[0].to_s.gsub('<d:href>', '').gsub('</d:href>', '')
         puts CGI::unescape href
+        main = '<?xml version="1.0" encoding="utf-8"?><d:multistatus xmlns:d="DAV:">' + e[1].to_s + "</d:multistatus>"
+        xml = REXML::Document.new main
+        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:getcontenttype']
+        if prop.nil?
+          ct = 'directory'
+        else
+          ct = prop.to_s.gsub('<d:getcontenttype>', '').gsub('</d:getcontenttype>', '')
+        end
+        puts "Content type: " + ct
+        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:creationdate']
+        puts "Creation date: " + prop.to_s.gsub('<d:creationdate>', '').gsub('</d:creationdate>', '')
+        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:getlastmodified']
+        puts "Last modified: " + prop.to_s.gsub('<d:getlastmodified>', '').gsub('</d:getlastmodified>', '')
+        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:getcontentlength']
+        if prop.nil?
+          length = '0'
+        else
+          length = prop.to_s.gsub('<d:getcontentlength>', '').gsub('</d:getcontentlength>', '')
+        end
+        puts "Content length: " + length + " bytes"
+        puts ''
       end
     else
       puts "Invalid returned data from server"
@@ -332,52 +353,6 @@ class YadiskApi
       output = basename.gsub(ext, "-preview-#{size}#{ext}")
       File.new("#{output}", 'wb').write(data)
       puts "#{file} preview is successfully downloaded"
-    else
-      puts "Invalid returned data from server"
-    end
-  end
-
-  #get property of files and directories
-  def get_property options = {}
-    dir = options[:dir] || '/'
-    req = Net::HTTP::Propfind.new dir
-    req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
-    req['User-Agent'] = "yadisk-ruby-cli"
-    req['Accept'] = "*/*"
-    req['Depth'] = "1"
-    req['Content-Type'] = 'application/x-www-form-urlencoded'
-    res = http.request req
-    if res.code == "207"
-      data = res.body
-      xml = REXML::Document.new data
-      doc = xml.elements['d:multistatus']
-      puts "Property of files and directories in #{dir}:"
-      doc.each do |e|
-        href = URI.decode e[0].to_s.gsub('<d:href>', '').gsub('</d:href>', '')
-        puts CGI::unescape href
-        main = '<?xml version="1.0" encoding="utf-8"?><d:multistatus xmlns:d="DAV:">' + e[1].to_s + "</d:multistatus>"
-        xml = REXML::Document.new main
-        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:getcontenttype']
-        if prop.nil?
-          ct = 'directory'
-        else
-          ct = prop.to_s.gsub('<d:getcontenttype>', '').gsub('</d:getcontenttype>', '')
-        end
-        puts "Content type: " + ct
-        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:creationdate']
-        puts "Creation date: " + prop.to_s.gsub('<d:creationdate>', '').gsub('</d:creationdate>', '')
-        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:getlastmodified']
-        puts "Last modified: " + prop.to_s.gsub('<d:getlastmodified>', '').gsub('</d:getlastmodified>', '')
-        prop = xml.elements['d:multistatus/d:propstat/d:prop/d:getcontentlength']
-        if prop.nil?
-          length = '0'
-        else
-          length = prop.to_s.gsub('<d:getcontentlength>', '').gsub('</d:getcontentlength>', '')
-        end
-        puts "Content length: " + length + " bytes"
-        puts ''
-      end
     else
       puts "Invalid returned data from server"
     end
