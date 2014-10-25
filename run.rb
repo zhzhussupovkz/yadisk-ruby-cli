@@ -3,5 +3,6 @@
 
 require_relative 'yadisk_cli'
 
-disk = YadiskCli.new 'your login', 'your password'
+# default location "ru"
+disk = YadiskCli.new 'your login', 'your password', 'ru'
 disk.run

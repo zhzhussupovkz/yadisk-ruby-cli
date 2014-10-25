@@ -36,9 +36,9 @@ require 'rexml/document'
 #YadiskApi - sipmlest class for working with yandex.disk
 class YadiskApi
 
-  def initialize login, pass
-    @login, @pass = login, pass
-    uri = URI.parse 'https://webdav.yandex.ru'
+  def initialize login, pass, location
+    @login, @pass, @location = login, pass, location
+    uri = URI.parse "https://webdav.yandex.#{@location}"
     @http = Net::HTTP.new uri.host, uri.port
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -60,7 +60,7 @@ class YadiskApi
     etag = Digest::MD5.hexdigest File.read(file)
     sha = Digest::SHA256.hexdigest File.read(file)
     size = File.size(file)
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Accept'] = "*/*"
     req['Etag'] = etag
@@ -92,7 +92,7 @@ class YadiskApi
     end
     req = Net::HTTP::Get.new file
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['Accept'] = "*/*"
     req['User-Agent'] = "yadisk-ruby-cli"
     res = http.request(req)
@@ -115,7 +115,7 @@ class YadiskApi
     end
     req = Net::HTTP::Mkcol.new dir
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Accept'] = "*/*"
     res = http.request(req)
@@ -142,7 +142,7 @@ class YadiskApi
     end
     req = Net::HTTP::Copy.new from
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['Accept'] = "*/*"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Destination'] = to
@@ -170,7 +170,7 @@ class YadiskApi
     end
     req = Net::HTTP::Move.new from
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['Accept'] = "*/*"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Destination'] = to
@@ -192,7 +192,7 @@ class YadiskApi
     end
     req = Net::HTTP::Delete.new dir
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Accept'] = "*/*"
     res = http.request req
@@ -212,7 +212,7 @@ class YadiskApi
       </D:prop></D:propfind>'
     req = Net::HTTP::Propfind.new '/'
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Accept'] = "*/*"
     req['Depth'] = "0"
@@ -237,7 +237,7 @@ class YadiskApi
     options = URI.escape(options.collect{ |k,v| "#{k}=#{v}"}.join('&'))
     req = Net::HTTP::Propfind.new dir + '/?' + options
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Accept'] = "*/*"
     req['Depth'] = "1"
@@ -291,7 +291,7 @@ class YadiskApi
     <propertyupdate xmlns="DAV:"><set><prop>
       <public_url xmlns="urn:yandex:disk:meta">true</public_url>
     </prop></set></propertyupdate>'
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Content-Length'] = send.size
     req.body = send
@@ -320,7 +320,7 @@ class YadiskApi
     <propertyupdate xmlns="DAV:"><remove><prop>
       <public_url xmlns="urn:yandex:disk:meta"/>
     </prop></remove></propertyupdate>'
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     req['Content-Length'] = send.size
     req.body = send
@@ -343,7 +343,7 @@ class YadiskApi
     size = options[:size] || 'XS'
     req = Net::HTTP::Get.new file + "/?preview&size=#{size}"
     req.basic_auth @login, @pass
-    req['Host'] = "webdav.yandex.ru"
+    req['Host'] = "webdav.yandex.#{@location}"
     req['User-Agent'] = "yadisk-ruby-cli"
     res = http.request req
     if res.code == "200"

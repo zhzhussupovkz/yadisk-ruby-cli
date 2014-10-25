@@ -28,8 +28,8 @@ require "optparse"
 require_relative 'yadisk_api'
 
 class YadiskCli
-  def initialize login, pass
-    @yadisk = YadiskApi.new login, pass
+  def initialize login, pass, location
+    @yadisk = YadiskApi.new login, pass, location
     @cli = {}
 
     @global = OptionParser.new do |opts|
